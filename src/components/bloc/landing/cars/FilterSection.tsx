@@ -153,8 +153,7 @@ export default function FilterSection({
               Apply Filters
             </Button>
             <Button
-              variant="outline"
-              className="hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-[var(--accent-gold)]"
+              className="bg-card-car hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-[var(--accent-gold)]"
               onClick={onReset}
             >
               Reset All

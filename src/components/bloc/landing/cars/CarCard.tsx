@@ -66,12 +66,6 @@ export default function CarCard({
           >
             View Details
           </a>
-          <a
-            href="#"
-            className="text-foreground flex-1 rounded-full border border-[var(--card-border)] px-4 py-2 text-center font-semibold transition hover:border-[var(--accent-gold)] hover:bg-[var(--card-bg)]"
-          >
-            Schedule Test Drive
-          </a>
         </div>
       </div>
     </div>
