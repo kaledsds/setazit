@@ -8,7 +8,7 @@ export const carInputSchema = z.object({
   color: z.string(),
   year: z.number().int(),
   price: z.string(),
-  availability: z.boolean().optional().default(true),
+  availability: z.boolean(),
 });
 
 export type carInputSchemaType = z.infer<typeof carInputSchema>;

@@ -12,7 +12,7 @@ export const appRouter = createTRPCRouter({
   car: carRouter,
   part: partRouter,
   garage: garageRouter,
-  client: clientRouter,
+  clients: clientRouter,
   order: orderRouter,
   review: reviewRouter,
 });

@@ -7,7 +7,9 @@ export const editCarSchema = z.object({
   model: z.string().optional(),
   year: z.number().int().optional(),
   price: z.string().optional(),
-  availability: z.boolean().optional().default(true),
+  status: z.string().optional(),
+  color: z.string().optional(),
+  availability: z.boolean().optional(),
 });
 
 export type editCarSchemaType = z.infer<typeof editCarSchema>;

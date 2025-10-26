@@ -5,13 +5,14 @@ import React from "react";
 import { usePagination } from "@/common/components/pagination/hooks/use-pagination";
 import { TemplatePagination } from "@/common/components/pagination/components/template-pagination";
 import { useSession } from "next-auth/react";
+import { EditCarModal } from "./EditCarModal";
 
 interface CarTableProps {
   searchValue: string;
 }
 
 export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
-  const { data: session, status } = useSession(); // Move this up before using it
+  const { data: session, status } = useSession();
   const { paginationStates, paginationSetStates } = usePagination();
 
   const { data, isLoading, error } = api.car.getMycars.useQuery(
@@ -49,7 +50,7 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
   }
 
   if (error) {
-    console.error("Car fetch error:", error); // Add client-side logging
+    console.error("Car fetch error:", error);
     return (
       <div className="bg-card-car overflow-auto rounded-xl border border-[rgba(212,175,55,0.3)] shadow backdrop-blur">
         <div className="text-center text-(--accent-gold)">
@@ -64,19 +65,18 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex-col gap-4 md:flex-row md:justify-between"></div>
-
       <div className="bg-card-car overflow-auto rounded-xl border border-[rgba(212,175,55,0.3)] shadow backdrop-blur">
         <table className="text-foreground w-full min-w-[800px] text-left text-sm">
           <thead className="bg-[rgba(212,175,55,0.05)] text-(--accent-gold)">
             <tr>
-              <th className="px-4 py-3">Car</th>
-              <th className="px-4 py-3">Make</th>
-              <th className="px-4 py-3">Model</th>
-              <th className="px-4 py-3">Year</th>
-              <th className="px-4 py-3">Fuel</th>
-              <th className="px-4 py-3">Price</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Image</th>
+              <th className="px-4 py-3">Marque</th>
+              <th className="px-4 py-3">Modèle</th>
+              <th className="px-4 py-3">Année</th>
+              <th className="px-4 py-3">Couleur</th>
+              <th className="px-4 py-3">Prix</th>
+              <th className="px-4 py-3">Statut</th>
+              <th className="px-4 py-3">Disponibilité</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
@@ -84,51 +84,69 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
             {cars?.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-6 py-8 text-center text-(--accent-gold)"
                 >
                   {searchValue.trim()
-                    ? "No cars found matching your search."
-                    : "No cars available."}
+                    ? "Aucune voiture trouvée correspondant à votre recherche."
+                    : "Aucune voiture disponible."}
                 </td>
               </tr>
             ) : (
               cars.map((car) => (
                 <tr
                   key={car.id}
-                  className="border-t border-[rgba(212,175,55,0.1)]"
+                  className="border-t border-[rgba(212,175,55,0.1)] hover:bg-[rgba(212,175,55,0.02)]"
                 >
-                  <td className="flex items-center gap-3 px-4 py-3">
+                  <td className="px-4 py-3">
                     <img
-                      // src={car.image}
-                      alt={car.brand}
+                      src={car.image || "/placeholder-car.jpg"}
+                      alt={`${car.brand} ${car.model}`}
                       className="h-12 w-20 rounded-lg object-cover"
                     />
-                    <div>
-                      <div className="font-semibold">{car.brand}</div>
-                    </div>
                   </td>
-                  <td className="px-4 py-3">{car.brand}</td>
+                  <td className="px-4 py-3 font-semibold">{car.brand}</td>
                   <td className="px-4 py-3">{car.model}</td>
                   <td className="px-4 py-3">{car.year}</td>
-                  <td className="px-4 py-3">{car.price}</td>
-                  <td className="px-4 py-3">${car.price}</td>
+                  <td className="px-4 py-3">
+                    <span className="capitalize">{car.color}</span>
+                  </td>
+                  <td className="px-4 py-3 font-semibold">{car.price} DT</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs ${car.color || "bg-gray-200"}`}
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        car.status === "new"
+                          ? "bg-green-500/20 text-green-400"
+                          : car.status === "used"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : car.status === "certified"
+                              ? "bg-purple-500/20 text-purple-400"
+                              : "bg-gray-500/20 text-gray-400"
+                      }`}
                     >
-                      {car.status || "N/A"}
+                      {car.status === "new"
+                        ? "Neuf"
+                        : car.status === "used"
+                          ? "Occasion"
+                          : car.status === "certified"
+                            ? "Certifié"
+                            : car.status || "N/A"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        car.availability
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {car.availability ? "Disponible" : "Indisponible"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        // onClick={() => onEdit(car.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <EditCarModal car={car} />
                       <Button
                         size="icon"
                         variant="destructive"

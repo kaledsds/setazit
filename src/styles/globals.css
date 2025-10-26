@@ -169,20 +169,20 @@
   --footer-bg: black;
 }
 body {
-  @apply bg-[var(--bg-primary)] font-serif text-[var(--text-primary)] transition-all duration-300 ease-in-out;
+  @apply bg-(--bg-primary) font-serif text-(--text-primary) transition-all duration-300 ease-in-out;
   line-height: 1.6;
   overflow-x: hidden;
 }
 
 /* Utility Classes */
 .section-title {
-  @apply mb-12 text-center text-4xl font-bold text-[var(--accent-gold)];
+  @apply mb-12 text-center text-4xl font-bold text-(--accent-gold);
   text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
 }
 
 /* Card Hover Effect */
 .card-hover {
-  @apply relative overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 backdrop-blur-lg transition-transform duration-300 ease-in-out;
+  @apply relative overflow-hidden rounded-2xl border border-(--card-border) bg-(--card-bg) p-6 backdrop-blur-lg transition-transform duration-300 ease-in-out;
 }
 
 .card-hover::before {

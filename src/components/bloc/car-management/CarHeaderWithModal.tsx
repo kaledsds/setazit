@@ -1,21 +1,15 @@
 // components/blocs/car-management/CarHeaderWithModal.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AddCarModal } from "./AddCarModal";
 
-export function CarHeaderWithModal({ onAddCar }: { onAddCar: () => void }) {
+export const CarHeaderWithModal = () => {
   return (
-    <div className="mb-6 flex items-center justify-between">
-      <h2 className="text-2xl font-bold text-[var(--accent-gold)]">
+    <div className="mb-6 flex items-center justify-between p-2">
+      <h2 className="text-[var(--accent-gold) text-2xl font-bold">
         🚗 Car Management
       </h2>
-      <Button
-        onClick={onAddCar}
-        className="bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] text-black shadow-md hover:scale-105"
-      >
-        <Plus className="mr-2 h-4 w-4" /> Add Car
-      </Button>
+      <AddCarModal />
     </div>
   );
-}
+};

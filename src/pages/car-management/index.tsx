@@ -7,6 +7,7 @@ import CarFilterSection from "@/components/bloc/car-management/CarFilterSection"
 import { useState } from "react";
 import { SearchBar } from "@/common/components/pagination/search-bar";
 import { PaginationContextProvider } from "@/common/components/pagination/context/pagination.context";
+import { CarHeaderWithModal } from "@/components/bloc/car-management/CarHeaderWithModal";
 
 export default function CarManagementPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -15,7 +16,7 @@ export default function CarManagementPage() {
       <div className="min-h-screen p-6">
         <div className="mx-auto">
           <Card className="mb-6 border-0 bg-transparent">
-            {/* <CarHeaderWithModal onAddCar={handleAddCar} /> */}
+            <CarHeaderWithModal />
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           </Card>
           <PaginationContextProvider ressourcesName="Type">

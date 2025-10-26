@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { api } from "@/utils/api";
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -64,7 +63,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-(--bg-primary) px-4">
       <div className="flex w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(212,175,55,0.3)] shadow-xl backdrop-blur">
         {/* Left image */}
         <div className="hidden w-1/2 md:block">
@@ -77,7 +76,7 @@ export default function SignUpPage() {
 
         {/* Right form */}
         <div className="bg-card-car w-full p-8 md:w-1/2">
-          <h1 className="mb-6 text-center text-3xl font-bold text-[var(--accent-gold)]">
+          <h1 className="mb-6 text-center text-3xl font-bold text-(--accent-gold)">
             Sign Up
           </h1>
 
@@ -93,7 +92,7 @@ export default function SignUpPage() {
             <span className="bg-card-car text-foreground relative z-10 px-2 text-sm">
               or create account with email
             </span>
-            <div className="absolute top-3 right-0 left-0 -z-0 border-t border-[rgba(212,175,55,0.2)]" />
+            <div className="absolute top-3 right-0 left-0 z-0 border-t border-[rgba(212,175,55,0.2)]" />
           </div>
 
           {error && (
@@ -178,7 +177,7 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] font-semibold text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-full bg-linear-to-r from-(--accent-gold) to-(--accent-gold-light) font-semibold text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {/* {signUpMutation.isPending
                 ? "Creating Account..."
@@ -191,7 +190,7 @@ export default function SignUpPage() {
             Already have an account?{" "}
             <Link
               href="/sign-in"
-              className="text-[var(--accent-gold)] hover:underline"
+              className="text-(--accent-gold) hover:underline"
             >
               Sign In
             </Link>
