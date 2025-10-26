@@ -1,4 +1,3 @@
-// app/sign-up/page.tsx
 "use client";
 
 import { Input } from "@/components/ui/input";
@@ -7,22 +6,61 @@ import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/utils/api";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [dob, setDob] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
-    // TODO: handle sign up logic
-    console.log({ name, dob, email, password });
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+        return;
+      }
+
+      setSuccess("Account created successfully!");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setName("");
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError("Network error, please try again later.");
+    }
   };
 
   return (
@@ -57,6 +95,12 @@ export default function SignUpPage() {
             </span>
             <div className="absolute top-3 right-0 left-0 -z-0 border-t border-[rgba(212,175,55,0.2)]" />
           </div>
+
+          {error && (
+            <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-500">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -109,6 +153,7 @@ export default function SignUpPage() {
                   type="password"
                   placeholder="••••••••"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="bg-card-car text-foreground border-[rgba(212,175,55,0.3)]"
@@ -123,6 +168,7 @@ export default function SignUpPage() {
                   type="password"
                   placeholder="••••••••"
                   required
+                  minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="bg-card-car text-foreground border-[rgba(212,175,55,0.3)]"
@@ -132,8 +178,11 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] font-semibold text-black transition hover:scale-105"
+              className="w-full rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] font-semibold text-black transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
             >
+              {/* {signUpMutation.isPending
+                ? "Creating Account..."
+                : "Create Account"} */}
               Create Account
             </Button>
           </form>

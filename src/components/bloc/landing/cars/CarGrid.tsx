@@ -5,6 +5,7 @@ import FilterSection from "./FilterSection";
 import Pagination from "./Pagination";
 import SortBy from "./SortBy";
 import PerPageSelector from "./PerPageSelector"; // Reusable per-page dropdown
+import { SearchBar } from "@/common/components/pagination/search-bar";
 
 const sampleCars = [
   {
@@ -333,6 +334,8 @@ const sampleCars = [
 ];
 
 export default function CarGrid() {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(6);
 
@@ -341,9 +344,11 @@ export default function CarGrid() {
   const paginatedCars = sampleCars.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <section id="inventory" className="bg-[var(--bg-secondary)] px-6 py-6">
+    <section id="inventory" className="px-6 py-6">
       <div className="mx-auto max-w-[1400px] flex-col space-y-10">
         <h2 className="section-title">Our Collection</h2>
+
+        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
         <FilterSection
           onApply={() => console.log("Apply filters")}

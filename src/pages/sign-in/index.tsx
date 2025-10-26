@@ -14,11 +14,16 @@ export default function SignInPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    signIn("credentials", { email, password, redirect: false });
+    signIn("credentials", {
+      email,
+      password,
+      redirect: true,
+      redirectTo: "/dashboard",
+    });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-(--bg-primary) px-4">
       <div className="flex w-full max-w-4xl overflow-hidden rounded-2xl border border-[rgba(212,175,55,0.3)] shadow-xl backdrop-blur">
         {/* Left image */}
         <div className="hidden w-1/2 md:block">
@@ -31,7 +36,7 @@ export default function SignInPage() {
 
         {/* Right form */}
         <div className="bg-card-car w-full p-8 md:w-1/2">
-          <h1 className="mb-6 text-center text-3xl font-bold text-[var(--accent-gold)]">
+          <h1 className="mb-6 text-center text-3xl font-bold text-(--accent-gold)">
             Sign In
           </h1>
 
@@ -47,7 +52,7 @@ export default function SignInPage() {
             <span className="bg-card-car text-foreground relative z-10 px-2 text-sm">
               or continue with email
             </span>
-            <div className="absolute top-3 right-0 left-0 -z-0 border-t border-[rgba(212,175,55,0.2)]" />
+            <div className="absolute top-3 right-0 left-0 z-0 border-t border-[rgba(212,175,55,0.2)]" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,7 +86,7 @@ export default function SignInPage() {
 
             <Button
               type="submit"
-              className="w-full rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] font-semibold text-black transition hover:scale-105"
+              className="w-full rounded-full bg-linear-to-r from-(--accent-gold) to-(--accent-gold-light) font-semibold text-black transition hover:scale-105"
             >
               Sign In
             </Button>
@@ -91,7 +96,7 @@ export default function SignInPage() {
             Don’t have an account?{" "}
             <Link
               href="/sign-up"
-              className="text-[var(--accent-gold)] hover:underline"
+              className="text-(--accent-gold) hover:underline"
             >
               Sign Up
             </Link>

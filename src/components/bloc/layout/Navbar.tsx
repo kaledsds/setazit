@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ThemeToggle from "../landing/ThemeToggle";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar() {
+  const { data: session } = useSession();
   const pathname = usePathname() ?? "";
 
   const getTitle = () => {
@@ -28,7 +30,7 @@ export default function Navbar() {
 
   return (
     <header className="bg-card-car sticky top-0 z-40 flex items-center justify-between border-b border-[rgba(212,175,55,0.2)] px-6 py-4 shadow-md backdrop-blur">
-      <h1 className="hidden text-lg font-semibold text-[var(--accent-gold)] md:block">
+      <h1 className="hidden text-lg font-semibold text-(--accent-gold) md:block">
         {getTitle()}
       </h1>
 
@@ -58,7 +60,10 @@ export default function Navbar() {
             <Button variant="ghost" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/avatar.jpg" alt="User" />
-                <AvatarFallback>MF</AvatarFallback>
+                <AvatarFallback>
+                  {session?.user?.name?.split(" ")[0]?.charAt(0)}
+                  {session?.user?.name?.split(" ")[1]?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -66,15 +71,15 @@ export default function Navbar() {
             align="end"
             className="bg-card-car text-foreground border-[rgba(212,175,55,0.3)] backdrop-blur"
           >
-            <DropdownMenuItem className="hover:text-[var(--accent-gold)]">
+            <DropdownMenuItem className="hover:text-(--accent-gold)">
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:text-[var(--accent-gold)]">
+            <DropdownMenuItem className="hover:text-(--accent-gold)">
               Settings
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => console.log("Logout clicked")}
-              className="hover:text-[var(--accent-gold)]"
+              onClick={() => void signOut()}
+              className="hover:text-(--accent-gold)"
             >
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </DropdownMenuItem>

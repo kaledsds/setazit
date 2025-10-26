@@ -43,7 +43,7 @@ export default function MobileSidebar() {
           side="left"
           className="bg-card-car text-foreground w-64 border-r border-[rgba(212,175,55,0.3)] p-0 shadow-xl backdrop-blur"
         >
-          <div className="p-4 text-xl font-bold text-[var(--accent-gold)]">
+          <div className="p-4 text-xl font-bold text-(--accent-gold)">
             MyFarm
           </div>
 
@@ -52,7 +52,7 @@ export default function MobileSidebar() {
               <Link
                 key={name}
                 href={href}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition hover:bg-[rgba(212,175,55,0.1)] hover:text-[var(--accent-gold)]"
+                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition hover:bg-[rgba(212,175,55,0.1)] hover:text-(--accent-gold)"
                 onClick={() => setOpen(false)}
               >
                 <Icon className="h-5 w-5" />
@@ -62,7 +62,7 @@ export default function MobileSidebar() {
 
             <Button
               variant="ghost"
-              className="text-foreground mt-4 flex items-center gap-2 text-sm hover:bg-[rgba(212,175,55,0.1)] hover:text-[var(--accent-gold)]"
+              className="text-foreground mt-4 flex items-center gap-2 text-sm hover:bg-[rgba(212,175,55,0.1)] hover:text-(--accent-gold)"
             >
               <LogOut className="h-4 w-4" /> Logout
             </Button>

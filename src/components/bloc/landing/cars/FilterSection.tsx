@@ -22,7 +22,7 @@ export default function FilterSection({
       )}
     >
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[color:var(--accent-gold)]">
+        <h2 className="text-xl font-bold text-(--accent-gold)">
           🔍 Find Your Perfect Vehicle
         </h2>
         <Button
@@ -153,7 +153,7 @@ export default function FilterSection({
               Apply Filters
             </Button>
             <Button
-              className="bg-card-car hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-[var(--accent-gold)]"
+              className="bg-card-car hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-(--accent-gold)"
               onClick={onReset}
             >
               Reset All

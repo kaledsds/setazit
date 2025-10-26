@@ -14,18 +14,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
-}
-
 // Necessary for Next auth
 model Account {
     id                       String  @id @default(cuid())
@@ -55,14 +43,19 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String      @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String      @unique
     emailVerified DateTime?
     image         String?
+    password      String?
+    dateOfBirth   DateTime?
     accounts      Account[]
     sessions      Session[]
-    posts         Post[]
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+    Client        Client?
+    Dealership    Dealership?
 }
 
 model VerificationToken {
@@ -71,4 +64,139 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Car {
+    id           String     @id @default(cuid())
+    image        String?
+    brand        String
+    model        String
+    year         Int
+    price        String
+    status       String
+    color        String
+    availability Boolean    @default(true)
+    dealershipId String
+    dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+    orders       Order[]
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    @@index([dealershipId])
+    @@index([brand])
+    @@index([model])
+    @@map("Voiture")
+}
+
+model Part {
+    id           String     @id @default(cuid())
+    image        String?
+    name         String
+    brand        String
+    model        String
+    condition    Int
+    price        String
+    availability Boolean    @default(true)
+    dealershipId String
+    dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    @@index([dealershipId])
+    @@index([brand])
+    @@index([name])
+    @@map("Pieces")
+}
+
+model Garage {
+    id           String     @id @default(cuid())
+    image        String?
+    name         String
+    address      String
+    phone        String
+    services     String
+    description  String
+    availability Boolean    @default(true)
+    dealershipId String
+    dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+    reviews      Review[]
+    createdAt    DateTime   @default(now())
+    updatedAt    DateTime   @updatedAt
+
+    @@index([dealershipId])
+    @@index([name])
+    @@map("Garage")
+}
+
+model Dealership {
+    id        String   @id @default(cuid())
+    image     String?
+    name      String
+    address   String
+    nature    String
+    phone     String
+    email     String
+    cars      Car[]
+    parts     Part[]
+    garages   Garage[]
+    userId    String   @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+    @@index([name])
+    @@map("Dealer_ship")
+}
+
+model Client {
+    id        String   @id @default(cuid())
+    image     String?
+    name      String
+    address   String
+    phone     String
+    email     String
+    orders    Order[]
+    reviews   Review[]
+    userId    String   @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+    @@map("Client")
+}
+
+model Order {
+    id        String   @id @default(cuid())
+    date      DateTime @default(now())
+    status    String
+    carId     String
+    car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+    clientId  String
+    client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([carId])
+    @@index([clientId])
+    @@index([status])
+    @@map("Commande")
+}
+
+model Review {
+    id        String   @id @default(cuid())
+    rating    String
+    date      DateTime @default(now())
+    comment   String
+    clientId  String
+    client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+    garageId  String?
+    garage    Garage?  @relation(fields: [garageId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([clientId])
+    @@index([garageId])
+    @@map("Avis")
 }

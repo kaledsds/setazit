@@ -27,7 +27,7 @@ export default function CarCard({
             ? "bg-red-600 text-white"
             : status === "Reserved"
               ? "bg-yellow-500 text-white"
-              : "bg-[var(--accent-gold)] text-black"
+              : "bg-(--accent-gold) text-black"
         }`}
       >
         {status}
@@ -38,9 +38,7 @@ export default function CarCard({
         className="mb-6 h-[250px] w-full rounded-xl object-cover"
       />
       <div className="space-y-3">
-        <h3 className="text-2xl font-semibold text-[var(--accent-gold)]">
-          {title}
-        </h3>
+        <h3 className="text-2xl font-semibold text-(--accent-gold)">{title}</h3>
         <div className="text-foreground flex justify-between text-sm">
           <span>{year}</span>
           <span>{engine}</span>
@@ -50,7 +48,7 @@ export default function CarCard({
           {features.map((feature, index) => (
             <span
               key={index}
-              className="text-foreground rounded-full border border-[var(--card-border)] bg-[var(--service-card-bg)] px-3 py-1 text-xs"
+              className="text-foreground rounded-full border border-(--card-border) bg-(--service-card-bg) px-3 py-1 text-xs"
             >
               {feature}
             </span>
@@ -62,7 +60,7 @@ export default function CarCard({
         <div className="mt-3 flex gap-3">
           <a
             href="#"
-            className="flex-1 rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] px-4 py-2 text-center font-semibold text-black transition-transform hover:-translate-y-1"
+            className="flex-1 rounded-full bg-linear-to-r from-(--accent-gold) to-(--accent-gold-light) px-4 py-2 text-center font-semibold text-black transition-transform hover:-translate-y-1"
           >
             View Details
           </a>

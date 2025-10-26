@@ -57,7 +57,7 @@ export default function Sidebar() {
       <div className="flex items-center justify-between p-4">
         {!collapsed && (
           <span className="text-xl font-bold text-[var(--accent-gold)]">
-            Essenya
+            Setazit
           </span>
         )}
         <Button
