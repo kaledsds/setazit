@@ -6,6 +6,7 @@ import { usePagination } from "@/common/components/pagination/hooks/use-paginati
 import { TemplatePagination } from "@/common/components/pagination/components/template-pagination";
 import { useSession } from "next-auth/react";
 import { EditCarModal } from "./EditCarModal";
+import { DeleteCarModal } from "./DeleteCarModal";
 
 interface CarTableProps {
   searchValue: string;
@@ -147,13 +148,10 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <EditCarModal car={car} />
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        // onClick={() => onDelete(car.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DeleteCarModal
+                        carId={car.id}
+                        carName={`${car.brand} ${car.model}`}
+                      />
                     </div>
                   </td>
                 </tr>
