@@ -1,19 +1,67 @@
-"use client";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+
+interface FilterState {
+  brand: string;
+  model: string;
+  year: string;
+  status: string;
+  color: string;
+  priceMin: string;
+  priceMax: string;
+  yearMin: string;
+  yearMax: string;
+}
+
+interface FilterSectionProps {
+  onApply: (filters: FilterState) => void;
+  onReset: () => void;
+  isCollapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
 
 export default function FilterSection({
   onApply,
   onReset,
   isCollapsed,
   setCollapsed,
-}: {
-  onApply: () => void;
-  onReset: () => void;
-  isCollapsed: boolean;
-  setCollapsed: (collapsed: boolean) => void;
-}) {
+}: FilterSectionProps) {
+  const [filters, setFilters] = useState<FilterState>({
+    brand: "",
+    model: "",
+    year: "",
+    status: "",
+    color: "",
+    priceMin: "",
+    priceMax: "",
+    yearMin: "",
+    yearMax: "",
+  });
+
+  const handleFilterChange = (key: keyof FilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleApply = () => {
+    onApply(filters);
+  };
+
+  const handleReset = () => {
+    setFilters({
+      brand: "",
+      model: "",
+      year: "",
+      status: "",
+      color: "",
+      priceMin: "",
+      priceMax: "",
+      yearMin: "",
+      yearMax: "",
+    });
+    onReset();
+  };
+
   return (
     <div
       className={cn(
@@ -37,107 +85,130 @@ export default function FilterSection({
       {!isCollapsed && (
         <>
           <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                label: "Make",
-                id: "makeFilter",
-                options: [
-                  "Lamborghini",
-                  "Mercedes-Benz",
-                  "Porsche",
-                  "Ferrari",
-                  "BMW",
-                  "Audi",
-                  "Bentley",
-                  "Rolls-Royce",
-                ],
-              },
-              {
-                label: "Model",
-                id: "modelFilter",
-                options: ["Huracán", "S-Class", "Cayenne", "488 GTB"],
-              },
-              {
-                label: "Year",
-                id: "yearFilter",
-                options: ["2024", "2023", "2022", "2021", "2020"],
-              },
-              {
-                label: "Fuel Type",
-                id: "fuelFilter",
-                options: ["Gasoline", "Hybrid", "Electric", "Diesel"],
-              },
-              {
-                label: "Transmission",
-                id: "transmissionFilter",
-                options: ["Automatic", "Manual", "CVT"],
-              },
-              {
-                label: "Drivetrain",
-                id: "drivetrainFilter",
-                options: ["AWD", "RWD", "FWD"],
-              },
-            ].map(({ label, id, options }) => (
-              <div key={id} className="flex flex-col">
-                <label
-                  htmlFor={id}
-                  className="text-foreground mb-2 text-sm font-medium"
-                >
-                  {label}
-                </label>
-                <select
-                  id={id}
-                  className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
-                >
-                  <option className="text-foreground" value="">
-                    All {label}s
-                  </option>
-                  {options.map((opt) => (
-                    <option
-                      className="text-background bg-card-car"
-                      key={opt}
-                      value={opt}
-                    >
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
+            {/* Brand */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="brandFilter"
+                className="text-foreground mb-2 text-sm font-medium"
+              >
+                Marque
+              </label>
+              <input
+                id="brandFilter"
+                type="text"
+                placeholder="Ex: Toyota, BMW"
+                value={filters.brand}
+                onChange={(e) => handleFilterChange("brand", e.target.value)}
+                className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
+              />
+            </div>
 
-            {/* Price Range */}
+            {/* Model */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="modelFilter"
+                className="text-foreground mb-2 text-sm font-medium"
+              >
+                Modèle
+              </label>
+              <input
+                id="modelFilter"
+                type="text"
+                placeholder="Ex: Camry, X5"
+                value={filters.model}
+                onChange={(e) => handleFilterChange("model", e.target.value)}
+                className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
+              />
+            </div>
+
+            {/* Status */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="statusFilter"
+                className="text-foreground mb-2 text-sm font-medium"
+              >
+                Statut
+              </label>
+              <select
+                id="statusFilter"
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
+              >
+                <option value="">Tous les statuts</option>
+                <option value="new">Neuf</option>
+                <option value="used">Occasion</option>
+                <option value="certified">Certifié</option>
+              </select>
+            </div>
+
+            {/* Color */}
+            <div className="flex flex-col">
+              <label
+                htmlFor="colorFilter"
+                className="text-foreground mb-2 text-sm font-medium"
+              >
+                Couleur
+              </label>
+              <input
+                id="colorFilter"
+                type="text"
+                placeholder="Ex: Noir, Blanc"
+                value={filters.color}
+                onChange={(e) => handleFilterChange("color", e.target.value)}
+                className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
+              />
+            </div>
+
+            {/* Year Range */}
             <div className="flex flex-col">
               <label className="text-foreground mb-2 text-sm font-medium">
-                Price Range
+                Année
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
                   placeholder="Min"
+                  value={filters.yearMin}
+                  onChange={(e) =>
+                    handleFilterChange("yearMin", e.target.value)
+                  }
                   className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
                 />
                 <input
                   type="number"
                   placeholder="Max"
+                  value={filters.yearMax}
+                  onChange={(e) =>
+                    handleFilterChange("yearMax", e.target.value)
+                  }
                   className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
                 />
               </div>
             </div>
 
-            {/* Mileage Range */}
+            {/* Price Range */}
             <div className="flex flex-col">
               <label className="text-foreground mb-2 text-sm font-medium">
-                Mileage Range
+                Prix (DT)
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
                   placeholder="Min"
+                  value={filters.priceMin}
+                  onChange={(e) =>
+                    handleFilterChange("priceMin", e.target.value)
+                  }
                   className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
                 />
                 <input
                   type="number"
                   placeholder="Max"
+                  value={filters.priceMax}
+                  onChange={(e) =>
+                    handleFilterChange("priceMax", e.target.value)
+                  }
                   className="text-foreground bg-card-car rounded-lg border border-[rgba(212,175,55,0.3)] p-3"
                 />
               </div>
@@ -148,15 +219,15 @@ export default function FilterSection({
           <div className="flex flex-wrap justify-center gap-4">
             <Button
               className="rounded-full bg-[linear-gradient(45deg,var(--accent-gold),var(--accent-gold-light))] px-6 py-2 text-black shadow-md transition hover:scale-105"
-              onClick={onApply}
+              onClick={handleApply}
             >
-              Apply Filters
+              Appliquer les filtres
             </Button>
             <Button
               className="bg-card-car hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-(--accent-gold)"
-              onClick={onReset}
+              onClick={handleReset}
             >
-              Reset All
+              Réinitialiser
             </Button>
           </div>
         </>

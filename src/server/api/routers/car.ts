@@ -49,27 +49,62 @@ export const carRouter = createTRPCRouter({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).max(100).default(10),
         search: z.string().optional(),
+        // Add filter fields
+        brand: z.string().optional(),
+        model: z.string().optional(),
+        yearMin: z.number().optional(),
+        yearMax: z.number().optional(),
+        priceMin: z.string().optional(),
+        priceMax: z.string().optional(),
+        status: z.string().optional(),
+        color: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { page, pageSize, search } = input;
+      const {
+        page,
+        pageSize,
+        search,
+        brand,
+        model,
+        yearMin,
+        yearMax,
+        priceMin,
+        priceMax,
+        status,
+        color,
+      } = input;
       const skip = (page - 1) * pageSize;
 
-      const searchWhere = buildSearchWhere(search);
-      const where = { ...searchWhere };
+      const where: any = {};
+
+      // Search
+      if (search) {
+        where.OR = [
+          { brand: { contains: search, mode: "insensitive" } },
+          { model: { contains: search, mode: "insensitive" } },
+          { color: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      // Filters
+      if (brand) where.brand = brand;
+      if (model) where.model = model;
+      if (status) where.status = status;
+      if (color) where.color = color;
+      if (yearMin || yearMax) {
+        where.year = {};
+        if (yearMin) where.year.gte = yearMin;
+        if (yearMax) where.year.lte = yearMax;
+      }
 
       const total = await ctx.db.car.count({ where });
-
       const cars = await ctx.db.car.findMany({
         where,
         skip,
         take: pageSize,
-        include: {
-          dealership: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+        include: { dealership: true },
+        orderBy: { createdAt: "desc" },
       });
 
       return {
