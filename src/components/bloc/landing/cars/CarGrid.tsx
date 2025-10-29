@@ -2,7 +2,6 @@
 import { useState } from "react";
 import CarCard from "./CarCard";
 import FilterSection from "./FilterSection";
-import Pagination from "./Pagination";
 import SortBy from "./SortBy";
 import PerPageSelector from "./PerPageSelector";
 import { SearchBar } from "@/common/components/pagination/search-bar";
@@ -163,7 +162,7 @@ export default function CarGrid() {
             {cars.map((car) => (
               <CarCard
                 key={car.id}
-                image={car.image || "/placeholder-car.jpg"}
+                image={car.image ?? "/placeholder-car.jpg"}
                 title={`${car.brand} ${car.model}`}
                 year={car.year.toString()}
                 engine={

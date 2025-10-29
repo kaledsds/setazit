@@ -325,15 +325,13 @@ const sampleCars = [
 ];
 
 export default function FeaturedCollection() {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(6);
-
-  const totalPages = Math.ceil(sampleCars.length / perPage);
+  const [page] = useState(1);
+  const [perPage] = useState(6);
 
   const paginatedCars = sampleCars.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <section id="inventory" className="bg-[var(--bg-secondary)] p-6 pb-0">
+    <section id="inventory" className="bg-(--bg-secondary) p-6 pb-0">
       <div className="mx-auto max-w-[1400px] flex-col space-y-10">
         <h2 className="section-title">Featured Collection</h2>
         <div className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">

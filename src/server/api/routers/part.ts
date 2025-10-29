@@ -1,54 +1,108 @@
-// src/server/api/routers/part.ts
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { createTRPCRouter, publicProcedure } from '../trpc';
-import { partSchema } from '@/validation/partSchema';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { partInputSchema } from "@/validation/part/partInputSchema";
+import { editPartSchema } from "@/validation/part/editPartSchema";
+import { TRPCError } from "@trpc/server";
 
+const buildSearchWhere = (search?: string) => {
+  if (!search) return {};
+  return {
+    OR: [
+      { name: { contains: search, mode: "insensitive" as const } },
+      { brand: { contains: search, mode: "insensitive" as const } },
+      { model: { contains: search, mode: "insensitive" as const } },
+    ],
+  };
+};
+
+const buildPaginationMeta = (total: number, page: number, pageSize: number) => {
+  const lastPage = Math.ceil(total / pageSize);
+  const from = total > 0 ? (page - 1) * pageSize + 1 : 0;
+  const to = Math.min(page * pageSize, total);
+
+  return {
+    total,
+    lastPage,
+    currentPage: page,
+    perPage: pageSize,
+    current_page: page,
+    per_page: pageSize,
+    last_page: lastPage,
+    from,
+    to,
+  };
+};
 
 export const partRouter = createTRPCRouter({
-  create: publicProcedure
-    .input(
-      partSchema
-    )
+  create: protectedProcedure
+    .input(partInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const dealer = await ctx.db.dealership.findUnique({ where: { id: input.dealershipId } });
-      if (!dealer) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid dealershipId' });
-      return ctx.db.part.create({ data: input });
+      const dealership = await ctx.db.dealership.findFirst({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!dealership)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Dealership not found",
+        });
+
+      return ctx.db.part.create({
+        data: { ...input, dealershipId: dealership.id },
+      });
     }),
 
-  getById: publicProcedure.input(z.object({ id: z.number() })).query(async ({ ctx, input }) => {
-    const item = await ctx.db.part.findUnique({ where: { id: input.id }, include: { dealership: true } });
-    if (!item) throw new TRPCError({ code: 'NOT_FOUND', message: 'Part not found' });
-    return item;
-  }),
+  edit: protectedProcedure
+    .input(editPartSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      const part = await ctx.db.part.findFirst({
+        where: { id, dealership: { userId: ctx.session.user.id } },
+      });
+      if (!part)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Part not found" });
 
-  list: publicProcedure
-    .input(z.object({ skip: z.number().optional(), take: z.number().optional(), search: z.string().optional() }))
-    .query(async ({ ctx, input }) => {
-      const where = input.search ? { name: { contains: input.search, mode: 'insensitive' } } : undefined;
-      return ctx.db.part.findMany({ where:{}, skip: input.skip, take: input.take ?? 20 });
+      return ctx.db.part.update({ where: { id }, data });
     }),
 
-  update: publicProcedure
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const part = await ctx.db.part.findFirst({
+        where: { id: input.id, dealership: { userId: ctx.session.user.id } },
+      });
+      if (!part)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Part not found" });
+
+      return ctx.db.part.delete({ where: { id: input.id } });
+    }),
+
+  getMyParts: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        data: z.object({
-          name: z.string(),
-          brand: z.string(),
-          model: z.string(),
-          condition: z.number().int().optional(),
-          price: z.string().optional(),
-          availability: z.boolean().optional(),
-        }),
-      })
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(10),
+        search: z.string().optional(),
+      }),
     )
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.part.update({ where: { id: input.id }, data: input.data });
-    }),
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, search } = input;
+      const skip = (page - 1) * pageSize;
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
-    await ctx.db.part.delete({ where: { id: input.id } });
-    return { success: true };
-  }),
+      const where = {
+        dealership: { userId: ctx.session.user.id },
+        ...buildSearchWhere(search),
+      };
+
+      const [total, parts] = await Promise.all([
+        ctx.db.part.count({ where }),
+        ctx.db.part.findMany({
+          where,
+          skip,
+          take: pageSize,
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      return { data: parts, meta: buildPaginationMeta(total, page, pageSize) };
+    }),
 });

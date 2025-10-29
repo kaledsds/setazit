@@ -52,9 +52,9 @@ export const AddCarModal = () => {
   });
 
   const createCarMutation = api.car.createcar.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Voiture ajoutée avec succès!");
-      utils.car.invalidate();
+      await utils.car.invalidate();
       reset();
       setOpen(false);
     },

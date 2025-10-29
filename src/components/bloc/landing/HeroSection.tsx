@@ -13,7 +13,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-radial from-yellow-500/10 via-transparent to-transparent"></div>
 
       <div className="relative z-10 max-w-3xl px-4">
-        <h1 className="from-foreground bg-gradient-to-r to-yellow-400 bg-clip-text text-4xl font-bold text-transparent drop-shadow-xl md:text-5xl lg:text-6xl">
+        <h1 className="from-foreground bg-linear-to-r to-yellow-400 bg-clip-text text-4xl font-bold text-transparent drop-shadow-xl md:text-5xl lg:text-6xl">
           SetaZit Luxury Redefined
         </h1>
         <p className="mt-4 text-lg text-white md:text-xl">
@@ -24,7 +24,7 @@ const HeroSection = () => {
           <Link href="/sign-in">
             <Button
               size="lg"
-              className="cursor-pointer rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 text-black shadow-xl"
+              className="cursor-pointer rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 text-black shadow-xl"
             >
               Sign In
             </Button>

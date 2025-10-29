@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface CarCardProps {
   image: string;
   title: string;
@@ -32,7 +34,7 @@ export default function CarCard({
       >
         {status}
       </div>
-      <img
+      <Image
         src={image}
         alt={title}
         className="mb-6 h-[250px] w-full rounded-xl object-cover"

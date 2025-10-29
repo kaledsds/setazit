@@ -1,79 +1,77 @@
-// src/server/api/routers/dealership.ts
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { dealershipSchema } from "@/validation/dealershipSchema";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { dealershipInputSchema } from "@/validation/dealership/dealershipInputSchema";
 
 export const dealershipRouter = createTRPCRouter({
-  create: publicProcedure
-    .input(dealershipSchema)
+  // Create dealership
+  create: protectedProcedure
+    .input(dealershipInputSchema)
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.dealership.create({ data: input });
-    }),
-
-  getById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const item = await ctx.db.dealership.findUnique({
-        where: { id: input.id },
-        include: { cars: true, parts: true, garages: true },
+      const existingDealership = await ctx.db.dealership.findUnique({
+        where: { userId: ctx.session.user.id },
       });
-      if (!item)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Dealership not found",
-        });
-      return item;
+
+      if (existingDealership) {
+        throw new Error("Vous avez déjà un concessionnaire");
+      }
+      const dealership = await ctx.db.dealership.create({
+        data: {
+          name: input.name,
+          phone: input.phone,
+          address: input.address,
+          image: input.image,
+          nature: input.nature,
+          email: input.email,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      return dealership;
     }),
 
-  list: publicProcedure
+  // Get my dealership
+  getMy: protectedProcedure.query(async ({ ctx }) => {
+    const dealership = await ctx.db.dealership.findUnique({
+      where: { userId: ctx.session.user.id },
+      include: {
+        cars: true,
+        _count: {
+          select: {
+            cars: true,
+          },
+        },
+      },
+    });
+
+    return dealership;
+  }),
+
+  // Update dealership
+  update: protectedProcedure
     .input(
       z.object({
-        skip: z.number().min(0).optional(),
-        take: z.number().min(1).max(100).optional(),
-        search: z.string().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const where = input.search
-        ? {
-            OR: [
-              { name: { contains: input.search, mode: "insensitive" } },
-              { address: { contains: input.search, mode: "insensitive" } },
-            ],
-          }
-        : undefined;
-      return ctx.db.dealership.findMany({
-        where: {},
-        skip: input.skip,
-        take: input.take ?? 20,
-      });
-    }),
-
-  update: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        data: z.object({
-          name: z.string(),
-          address: z.string(),
-          nature: z.string(),
-          phone: z.string(),
-          email: z.string().email(),
-        }),
+        name: z.string().min(2).optional(),
+        description: z.string().min(10).optional(),
+        phone: z.string().min(8).optional(),
+        address: z.string().min(5).optional(),
+        city: z.string().min(2).optional(),
+        logo: z.string().url().optional().or(z.literal("")),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.dealership.update({
-        where: { id: input.id },
-        data: input.data,
+      const dealership = await ctx.db.dealership.findUnique({
+        where: { userId: ctx.session.user.id },
       });
-    }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db.dealership.delete({ where: { id: input.id } });
-      return { success: true };
+      if (!dealership) {
+        throw new Error("Concessionnaire introuvable");
+      }
+
+      const updated = await ctx.db.dealership.update({
+        where: { id: dealership.id },
+        data: input,
+      });
+
+      return updated;
     }),
 });

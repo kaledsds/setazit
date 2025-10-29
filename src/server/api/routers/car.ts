@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { z } from "zod";
 import { editCarSchema } from "@/validation/car/editCarSchema";
 import { TRPCError } from "@trpc/server";
+import type { Prisma } from "@prisma/client";
 
 // Helper function to build search conditions
 const buildSearchWhere = (search?: string) => {
@@ -69,14 +70,13 @@ export const carRouter = createTRPCRouter({
         model,
         yearMin,
         yearMax,
-        priceMin,
-        priceMax,
         status,
         color,
       } = input;
       const skip = (page - 1) * pageSize;
 
-      const where: any = {};
+      // Use Prisma.CarWhereInput type for proper typing
+      const where: Prisma.CarWhereInput = {};
 
       // Search
       if (search) {
@@ -87,16 +87,26 @@ export const carRouter = createTRPCRouter({
         ];
       }
 
-      // Filters
-      if (brand) where.brand = brand;
-      if (model) where.model = model;
+      // Filters - use contains for partial matching
+      if (brand) where.brand = { contains: brand, mode: "insensitive" };
+      if (model) where.model = { contains: model, mode: "insensitive" };
       if (status) where.status = status;
-      if (color) where.color = color;
+      if (color) where.color = { contains: color, mode: "insensitive" };
+
+      // Year range
       if (yearMin || yearMax) {
         where.year = {};
         if (yearMin) where.year.gte = yearMin;
         if (yearMax) where.year.lte = yearMax;
       }
+
+      // Price range (if needed - uncomment if you want price filtering)
+      // Note: If price is a string in your schema, you might need to handle it differently
+      // if (priceMin || priceMax) {
+      //   where.price = {};
+      //   if (priceMin) where.price.gte = priceMin;
+      //   if (priceMax) where.price.lte = priceMax;
+      // }
 
       const total = await ctx.db.car.count({ where });
       const cars = await ctx.db.car.findMany({
@@ -112,7 +122,6 @@ export const carRouter = createTRPCRouter({
         meta: buildPaginationMeta(total, page, pageSize),
       };
     }),
-
   /**
    * Get cars by client orders with pagination and search
    * @access protected
@@ -496,66 +505,6 @@ export const carRouter = createTRPCRouter({
       });
 
       return deletecar;
-    }),
-
-  /**
-   * Get available cars only with pagination and search
-   * @access public
-   * @returns paginated available cars
-   */
-  getAvailableCars: publicProcedure
-    .input(
-      z.object({
-        page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).max(100).default(10),
-        search: z.string().optional(),
-        minYear: z.number().optional(),
-        maxYear: z.number().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { page, pageSize, search, minYear, maxYear } = input;
-      const skip = (page - 1) * pageSize;
-
-      const searchWhere = buildSearchWhere(search);
-
-      // Build year filter
-      const yearFilter: any = {};
-      if (minYear) yearFilter.gte = minYear;
-      if (maxYear) yearFilter.lte = maxYear;
-
-      const where: any = {
-        availability: true,
-        ...searchWhere,
-        ...(Object.keys(yearFilter).length > 0 && { year: yearFilter }),
-      };
-
-      const total = await ctx.db.car.count({ where });
-
-      const cars = await ctx.db.car.findMany({
-        where,
-        skip,
-        take: pageSize,
-        include: {
-          dealership: {
-            select: {
-              id: true,
-              name: true,
-              address: true,
-              phone: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      return {
-        data: cars,
-        meta: buildPaginationMeta(total, page, pageSize),
-      };
     }),
 
   /**

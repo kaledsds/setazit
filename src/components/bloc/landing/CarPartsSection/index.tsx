@@ -154,7 +154,7 @@ export default function CarPartsSection() {
   };
 
   return (
-    <section className="bg-[var(--bg-secondary)] px-6 py-12">
+    <section className="bg-(--bg-secondary) px-6 py-12">
       <div className="mx-auto max-w-[1400px] space-y-10">
         <h2 className="section-title">Premium Car Parts</h2>
 
@@ -184,7 +184,7 @@ export default function CarPartsSection() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title or description"
-            className="w-full rounded-lg border border-[rgba(212,175,55,0.3)] bg-[linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05))] p-3 text-[color:var(--text-primary)] backdrop-blur"
+            className="w-full rounded-lg border border-[rgba(212,175,55,0.3)] bg-[linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05))] p-3 text-[color:(--text-primary) backdrop-blur"
           />
         </div>
 

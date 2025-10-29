@@ -51,15 +51,15 @@ export const EditCarModal = ({ car }: EditCarModalProps) => {
       price: car.price,
       status: car.status,
       color: car.color,
-      image: car.image || "",
+      image: car.image ?? "",
       availability: car.availability,
     },
   });
 
   const editCarMutation = api.car.editcarPost.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Voiture modifiée avec succès!");
-      utils.car.invalidate();
+      await utils.car.invalidate();
       setOpen(false);
     },
     onError: (error) => {

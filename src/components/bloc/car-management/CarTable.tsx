@@ -1,5 +1,3 @@
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { api } from "@/utils/api";
 import React from "react";
 import { usePagination } from "@/common/components/pagination/hooks/use-pagination";
@@ -7,13 +5,14 @@ import { TemplatePagination } from "@/common/components/pagination/components/te
 import { useSession } from "next-auth/react";
 import { EditCarModal } from "./EditCarModal";
 import { DeleteCarModal } from "./DeleteCarModal";
+import Image from "next/image";
 
 interface CarTableProps {
   searchValue: string;
 }
 
 export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { paginationStates, paginationSetStates } = usePagination();
 
   const { data, isLoading, error } = api.car.getMycars.useQuery(
@@ -100,8 +99,8 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
                   className="border-t border-[rgba(212,175,55,0.1)] hover:bg-[rgba(212,175,55,0.02)]"
                 >
                   <td className="px-4 py-3">
-                    <img
-                      src={car.image || "/placeholder-car.jpg"}
+                    <Image
+                      src={car.image ?? "/placeholder-car.jpg"}
                       alt={`${car.brand} ${car.model}`}
                       className="h-12 w-20 rounded-lg object-cover"
                     />

@@ -21,7 +21,7 @@ export default function CarPartFilterSection({
       )}
     >
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[color:var(--accent-gold)]">
+        <h2 className="text-[color:(--accent-gold) text-xl font-bold">
           🛠️ Find Car Parts That Fit
         </h2>
         <Button
@@ -126,7 +126,7 @@ export default function CarPartFilterSection({
             </Button>
             <Button
               variant="outline"
-              className="hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-[var(--accent-gold)]"
+              className="hover:bg-card-car text-foreground rounded-full border border-[rgba(212,175,55,0.3)] px-6 py-2 backdrop-blur hover:border-(--accent-gold)"
               onClick={onReset}
             >
               Reset All

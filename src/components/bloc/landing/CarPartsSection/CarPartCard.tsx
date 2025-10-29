@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface CarPartCardProps {
   image: string;
   title: string;
@@ -15,16 +17,14 @@ export default function CarPartCard({
 }: CarPartCardProps) {
   return (
     <div className="bg-card-car card-hover rounded-2xl border border-[rgba(212,175,55,0.3)] p-6 backdrop-blur transition hover:scale-105">
-      <img
+      <Image
         src={image}
         alt={title}
         className="mb-6 h-[200px] w-full rounded-xl object-cover"
       />
 
       <div className="space-y-3">
-        <h3 className="text-2xl font-semibold text-[var(--accent-gold)]">
-          {title}
-        </h3>
+        <h3 className="text-2xl font-semibold text-(--accent-gold)">{title}</h3>
 
         <p className="text-foreground text-sm">{description}</p>
 
@@ -32,7 +32,7 @@ export default function CarPartCard({
           {features.map((feature, index) => (
             <span
               key={index}
-              className="text-foreground rounded-full border border-[var(--card-border)] bg-[var(--service-card-bg)] px-3 py-1 text-xs"
+              className="text-foreground rounded-full border border-(--card-border) bg-(--service-card-bg) px-3 py-1 text-xs"
             >
               {feature}
             </span>
@@ -46,13 +46,13 @@ export default function CarPartCard({
         <div className="mt-3 flex gap-3">
           <a
             href="#"
-            className="flex-1 rounded-full bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-gold-light)] px-4 py-2 text-center font-semibold text-black transition-transform hover:-translate-y-1"
+            className="flex-1 rounded-full bg-linear-to-r from-(--accent-gold) to-(--accent-gold-light) px-4 py-2 text-center font-semibold text-black transition-transform hover:-translate-y-1"
           >
             Buy Now
           </a>
           <a
             href="#"
-            className="text-foreground flex-1 rounded-full border border-[var(--card-border)] px-4 py-2 text-center font-semibold transition hover:border-[var(--accent-gold)] hover:bg-[var(--card-bg)]"
+            className="text-foreground flex-1 rounded-full border border-(--card-border) px-4 py-2 text-center font-semibold transition hover:border-(--accent-gold) hover:bg-(--card-bg)"
           >
             Details
           </a>

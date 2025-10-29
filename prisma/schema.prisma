@@ -136,10 +136,10 @@ model Dealership {
     nature    String
     phone     String
     email     String
+    userId    String   @unique
     cars      Car[]
     parts     Part[]
     garages   Garage[]
-    userId    String   @unique
     user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

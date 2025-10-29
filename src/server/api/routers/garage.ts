@@ -1,80 +1,134 @@
-// src/server/api/routers/garage.ts
 import { z } from "zod";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+import { garageInputSchema } from "@/validation/garage/garageInputSchema";
+import { editGarageSchema } from "@/validation/garage/editGarageSchema";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { garageSchema } from "@/validation/garageSchema";
+
+const buildSearchWhere = (search?: string) => {
+  if (!search) return {};
+  return {
+    OR: [
+      { name: { contains: search, mode: "insensitive" as const } },
+      { address: { contains: search, mode: "insensitive" as const } },
+      { phone: { contains: search, mode: "insensitive" as const } },
+    ],
+  };
+};
+
+const buildPaginationMeta = (total: number, page: number, pageSize: number) => {
+  const lastPage = Math.ceil(total / pageSize);
+  const from = total > 0 ? (page - 1) * pageSize + 1 : 0;
+  const to = Math.min(page * pageSize, total);
+
+  return {
+    total,
+    lastPage,
+    currentPage: page,
+    perPage: pageSize,
+    current_page: page,
+    per_page: pageSize,
+    last_page: lastPage,
+    from,
+    to,
+  };
+};
 
 export const garageRouter = createTRPCRouter({
-  create: publicProcedure
-    .input(garageSchema)
+  create: protectedProcedure
+    .input(garageInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const dealer = await ctx.db.dealership.findUnique({
-        where: { id: input.dealershipId },
+      const dealership = await ctx.db.dealership.findFirst({
+        where: { userId: ctx.session.user.id },
       });
-      if (!dealer)
+      if (!dealership)
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid dealershipId",
+          code: "NOT_FOUND",
+          message: "Dealership not found",
         });
-      return ctx.db.garage.create({ data: input });
-    }),
 
-  getById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const g = await ctx.db.garage.findUnique({
-        where: { id: input.id },
-        include: { reviews: true, dealership: true },
+      return ctx.db.garage.create({
+        data: { ...input, dealershipId: dealership.id },
       });
-      if (!g)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found" });
-      return g;
     }),
 
-  list: publicProcedure
+  edit: protectedProcedure
+    .input(editGarageSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input;
+      const garage = await ctx.db.garage.findFirst({
+        where: { id, dealership: { userId: ctx.session.user.id } },
+      });
+      if (!garage)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found" });
+
+      return ctx.db.garage.update({ where: { id }, data });
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const garage = await ctx.db.garage.findFirst({
+        where: { id: input.id, dealership: { userId: ctx.session.user.id } },
+      });
+      if (!garage)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found" });
+
+      return ctx.db.garage.delete({ where: { id: input.id } });
+    }),
+
+  getMyGarages: publicProcedure
     .input(
       z.object({
-        skip: z.number().optional(),
-        take: z.number().optional(),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(5),
         search: z.string().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const where = input.search
-        ? { name: { contains: input.search, mode: "insensitive" } }
-        : undefined;
-      return ctx.db.garage.findMany({
-        where: {},
-        skip: input.skip,
-        take: input.take ?? 20,
-      });
-    }),
+      try {
+        const { page, pageSize, search } = input;
+        const skip = (page - 1) * pageSize;
 
-  update: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        data: z.object({
-          name: z.string(),
-          address: z.string(),
-          phone: z.string(),
-          services: z.string(),
-          description: z.string(),
-          availability: z.boolean().optional(),
-        }),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.garage.update({
-        where: { id: input.id },
-        data: input.data,
-      });
-    }),
+        const searchWhere = buildSearchWhere(search);
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "You must be logged in to view your cars",
+          });
+        }
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db.garage.delete({ where: { id: input.id } });
-      return { success: true };
+        const owner = {
+          dealership: {
+            userId: ctx.session.user.id,
+          },
+          ...searchWhere,
+        };
+        const total = await ctx.db.garage.count({
+          where: owner,
+        });
+
+        const Garages = await ctx.db.garage.findMany({
+          where: owner,
+          skip,
+          take: pageSize,
+          include: {
+            dealership: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        return {
+          data: Garages,
+          meta: buildPaginationMeta(total, page, pageSize),
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An error occurred while fetching garages",
+          cause: error,
+        });
+      }
     }),
 });
