@@ -127,65 +127,6 @@ export const carRouter = createTRPCRouter({
    * @access protected
    * @returns paginated cars
    */
-  getcarsByOrder: protectedProcedure
-    .input(
-      z.object({
-        page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).max(100).default(10),
-        search: z.string().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { page, pageSize, search } = input;
-      const skip = (page - 1) * pageSize;
-
-      const client = await ctx.db.client.findFirst({
-        where: {
-          userId: ctx.session.user.id,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!client) {
-        throw new Error("Client not found");
-      }
-
-      const searchWhere = buildSearchWhere(search);
-      const where = {
-        orders: {
-          some: {
-            clientId: client.id,
-          },
-        },
-        ...searchWhere,
-      };
-
-      const total = await ctx.db.car.count({ where });
-
-      const cars = await ctx.db.car.findMany({
-        where,
-        skip,
-        take: pageSize,
-        include: {
-          dealership: true,
-          orders: {
-            where: {
-              clientId: client.id,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      return {
-        data: cars,
-        meta: buildPaginationMeta(total, page, pageSize),
-      };
-    }),
 
   /**
    * Get car details with pagination
@@ -452,7 +393,7 @@ export const carRouter = createTRPCRouter({
           },
           orders: {
             include: {
-              client: {
+              user: {
                 select: {
                   id: true,
                   name: true,

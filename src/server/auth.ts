@@ -10,26 +10,27 @@ import { db } from "./db";
 import { env } from "@/env";
 import type { GetServerSidePropsContext } from "next";
 import bcrypt from "bcryptjs";
+import type { Session } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
       // ...other properties
-      // role: UserRole;
+      role: string;
     } & DefaultSession["user"];
   }
 
   // interface User {
   //   // ...other properties
-  //   // role: UserRole;
+  //   role: string;
   // }
 }
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   session: {
-    strategy: "jwt",
+    strategy: "database",
   },
   providers: [
     GoogleProvider({
@@ -63,7 +64,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          if (!user || !user.password) {
+          if (!user?.password) {
             return null;
           }
           const isValidPassword = await bcrypt.compare(
@@ -89,24 +90,23 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    session: ({ session, user, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.id,
-      },
-    }),
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.picture = user.image;
-      }
-      return token;
+    async session({ session, user }) {
+      const activeSession = await db.session.findFirst({
+        where: { userId: user.id },
+        select: { sessionType: true },
+        orderBy: { expires: "desc" },
+      });
+
+      session.user.id = user.id;
+      // session.user.role = user.role ?? "user";
+      (session as unknown as Session).sessionType =
+        activeSession?.sessionType ?? null;
+
+      return session;
     },
+
     redirect: () => {
-      return "/dashboard";
+      return "/session-type-selection";
     },
   },
 };
@@ -115,5 +115,6 @@ export const getServerAuthSession = (ctx: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
+  console.log("🔍 Incoming cookies:", ctx.req.headers.cookie);
   return getServerSession(ctx.req, ctx.res, authOptions);
 };

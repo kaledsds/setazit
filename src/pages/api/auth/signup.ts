@@ -62,7 +62,7 @@ export default async function handler(
       data: {
         email: email.toLowerCase(),
         password: hashedPassword,
-        name: name || null,
+        name: name ?? null,
       },
       select: {
         id: true,

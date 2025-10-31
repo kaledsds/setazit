@@ -1,12 +1,13 @@
-import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { dealershipInputSchema } from "@/validation/dealership/dealershipInputSchema";
+import { editDealershipSchema } from "@/validation/dealership/editDealershipSchema";
 
 export const dealershipRouter = createTRPCRouter({
   // Create dealership
   create: protectedProcedure
     .input(dealershipInputSchema)
     .mutation(async ({ ctx, input }) => {
+      // Check if user already has a dealership
       const existingDealership = await ctx.db.dealership.findUnique({
         where: { userId: ctx.session.user.id },
       });
@@ -14,14 +15,24 @@ export const dealershipRouter = createTRPCRouter({
       if (existingDealership) {
         throw new Error("Vous avez déjà un concessionnaire");
       }
+
+      // Check if email already exists
+      const emailExists = await ctx.db.dealership.findFirst({
+        where: { email: input.email },
+      });
+
+      if (emailExists) {
+        throw new Error("Cet email est déjà utilisé");
+      }
+
       const dealership = await ctx.db.dealership.create({
         data: {
           name: input.name,
-          phone: input.phone,
           address: input.address,
-          image: input.image,
           nature: input.nature,
+          phone: input.phone,
           email: input.email,
+          image: input.image ?? null,
           userId: ctx.session.user.id,
         },
       });
@@ -35,9 +46,13 @@ export const dealershipRouter = createTRPCRouter({
       where: { userId: ctx.session.user.id },
       include: {
         cars: true,
+        parts: true,
+        garages: true,
         _count: {
           select: {
             cars: true,
+            parts: true,
+            garages: true,
           },
         },
       },
@@ -48,16 +63,7 @@ export const dealershipRouter = createTRPCRouter({
 
   // Update dealership
   update: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().min(2).optional(),
-        description: z.string().min(10).optional(),
-        phone: z.string().min(8).optional(),
-        address: z.string().min(5).optional(),
-        city: z.string().min(2).optional(),
-        logo: z.string().url().optional().or(z.literal("")),
-      }),
-    )
+    .input(editDealershipSchema)
     .mutation(async ({ ctx, input }) => {
       const dealership = await ctx.db.dealership.findUnique({
         where: { userId: ctx.session.user.id },
@@ -67,6 +73,20 @@ export const dealershipRouter = createTRPCRouter({
         throw new Error("Concessionnaire introuvable");
       }
 
+      // If email is being updated, check if it's already in use
+      if (input.email && input.email !== dealership.email) {
+        const emailExists = await ctx.db.dealership.findFirst({
+          where: {
+            email: input.email,
+            id: { not: dealership.id },
+          },
+        });
+
+        if (emailExists) {
+          throw new Error("Cet email est déjà utilisé");
+        }
+      }
+
       const updated = await ctx.db.dealership.update({
         where: { id: dealership.id },
         data: input,
@@ -74,4 +94,21 @@ export const dealershipRouter = createTRPCRouter({
 
       return updated;
     }),
+
+  // Delete dealership
+  delete: protectedProcedure.mutation(async ({ ctx }) => {
+    const dealership = await ctx.db.dealership.findUnique({
+      where: { userId: ctx.session.user.id },
+    });
+
+    if (!dealership) {
+      throw new Error("Concessionnaire introuvable");
+    }
+
+    await ctx.db.dealership.delete({
+      where: { id: dealership.id },
+    });
+
+    return { success: true };
+  }),
 });

@@ -37,6 +37,8 @@ export default function CarCard({
       <Image
         src={image}
         alt={title}
+        height={250}
+        width={300}
         className="mb-6 h-[250px] w-full rounded-xl object-cover"
       />
       <div className="space-y-3">

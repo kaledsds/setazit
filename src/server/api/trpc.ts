@@ -19,18 +19,16 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
     db,
   };
 };
-
-/**
- * This is the actual context you will use in your router.
- * NOTE: For App Router, session is passed in from the route handler
- */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
   const session = await getServerAuthSession({ req, res });
 
-  return createInnerTRPCContext({
+  return {
     session,
-  });
+    db,
+    req,
+    res,
+  };
 };
 
 /**

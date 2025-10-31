@@ -6,8 +6,6 @@ import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "@/utils/api";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");

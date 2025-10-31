@@ -102,6 +102,8 @@ export const CarTable: React.FC<CarTableProps> = ({ searchValue }) => {
                     <Image
                       src={car.image ?? "/placeholder-car.jpg"}
                       alt={`${car.brand} ${car.model}`}
+                      width={500}
+                      height={300}
                       className="h-12 w-20 rounded-lg object-cover"
                     />
                   </td>
