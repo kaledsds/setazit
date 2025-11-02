@@ -1,16 +1,15 @@
 import { PaginationContextProvider } from "@/common/components/pagination/context/pagination.context";
-import CarGrid from "@/components/bloc/landing/cars/CarGrid";
+import GarageGrid from "@/components/bloc/landing/garage/GarageGrid";
 import { LandingLayout } from "@/layouts/landing-layout";
 import React from "react";
 
-const Cars = () => {
+const GrageServices = () => {
   return (
     <LandingLayout>
       <PaginationContextProvider ressourcesName="Type">
-        <CarGrid />
+        <GarageGrid />
       </PaginationContextProvider>
     </LandingLayout>
   );
 };
-
-export default Cars;
+export default GrageServices;

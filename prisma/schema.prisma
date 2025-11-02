@@ -59,6 +59,7 @@ model User {
     Dealership    Dealership?
     Order         Order[]
     Review        Review[]
+    Shop          Shop[]
 }
 
 model VerificationToken {
@@ -104,6 +105,7 @@ model Part {
     dealership   Dealership @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
     createdAt    DateTime   @default(now())
     updatedAt    DateTime   @updatedAt
+    shop         Shop[]
 
     @@index([dealershipId])
     @@index([brand])
@@ -184,4 +186,21 @@ model Review {
     @@index([userId])
     @@index([garageId])
     @@map("Avis")
+}
+
+model Shop {
+    id        String   @id @default(cuid())
+    date      DateTime @default(now())
+    status    String
+    partId    String
+    part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([partId])
+    @@index([userId])
+    @@index([status])
+    @@map("Shop")
 }

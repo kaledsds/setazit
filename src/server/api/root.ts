@@ -8,6 +8,7 @@ import { orderRouter } from "./routers/order";
 import { reviewRouter } from "./routers/review";
 import { checkUserRouter } from "./routers/check-user";
 import { sessionRouter } from "./routers/session";
+import { shopRouter } from "./routers/shop";
 
 export const appRouter = createTRPCRouter({
   dealership: dealershipRouter,
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   garage: garageRouter,
   clients: clientRouter,
   order: orderRouter,
+  shop: shopRouter,
   review: reviewRouter,
   checkUser: checkUserRouter,
   session: sessionRouter,

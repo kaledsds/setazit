@@ -1,96 +1,108 @@
-// src/server/api/routers/review.ts
 import { z } from "zod";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { reviewSchema } from "@/validation/reviewSchema";
+import type { Prisma } from "@prisma/client";
+
+const buildSearchWhere = (search?: string): Prisma.ReviewWhereInput => {
+  if (!search) return {};
+  return {
+    OR: [
+      { user: { name: { contains: search, mode: "insensitive" as const } } },
+      { garage: { name: { contains: search, mode: "insensitive" as const } } },
+      { comment: { contains: search, mode: "insensitive" as const } },
+    ],
+  };
+};
+
+const buildPaginationMeta = (total: number, page: number, pageSize: number) => {
+  const lastPage = Math.ceil(total / pageSize);
+  const from = total > 0 ? (page - 1) * pageSize + 1 : 0;
+  const to = Math.min(page * pageSize, total);
+  return { total, lastPage, currentPage: page, perPage: pageSize, from, to };
+};
 
 export const reviewRouter = createTRPCRouter({
-  create: publicProcedure
-    .input(reviewSchema)
+  create: protectedProcedure
+    .input(
+      z.object({
+        garageId: z.string(),
+        rating: z.string().transform(Number),
+        comment: z.string().min(5),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const client = await ctx.db.client.findUnique({
-        where: { id: input.clientId },
+      const garage = await ctx.db.garage.findUnique({
+        where: { id: input.garageId },
       });
-      if (!client)
+      if (!garage)
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid clientId",
+          code: "NOT_FOUND",
+          message: "Garage non trouvé",
         });
-      if (input.garageId) {
-        const g = await ctx.db.garage.findUnique({
-          where: { id: input.garageId },
-        });
-        if (!g)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid garageId",
-          });
-      }
 
       return ctx.db.review.create({
         data: {
-          rating: input.rating,
-          date: input.date ? new Date(input.date) : new Date(),
-          comment: input.comment ?? "",
-          clientId: input.clientId,
-          garageId: input.garageId ?? null,
+          ...input,
+          rating: input.rating.toString(),
+          userId: ctx.session.user.id,
         },
       });
     }),
 
-  getById: publicProcedure
-    .input(z.object({ id: z.number() }))
+  getByGarage: publicProcedure
+    .input(z.object({ garageId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const r = await ctx.db.review.findUnique({
-        where: { id: input.id },
-        include: { client: true, garage: true },
-      });
-      if (!r)
-        throw new TRPCError({ code: "NOT_FOUND", message: "Review not found" });
-      return r;
-    }),
-
-  list: publicProcedure
-    .input(
-      z.object({
-        skip: z.number().optional(),
-        take: z.number().optional(),
-        garageId: z.number().optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const where = input.garageId ? { garageId: input.garageId } : undefined;
       return ctx.db.review.findMany({
-        where,
-        skip: input.skip,
-        take: input.take ?? 20,
-        include: { client: true, garage: true },
+        where: { garageId: input.garageId },
+        include: { user: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
       });
     }),
 
-  update: publicProcedure
+  getAll: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        data: z.object({
-          rating: z.string().optional(),
-          date: z.string().optional(),
-          comment: z.string().optional().nullable(),
-        }),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(10),
+        search: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const data: any = {};
-      if (input.data.rating) data.rating = input.data.rating;
-      if (input.data.date) data.date = new Date(input.data.date);
-      if (input.data.comment !== undefined) data.comment = input.data.comment;
-      return ctx.db.review.update({ where: { id: input.id }, data });
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, search } = input;
+      const skip = (page - 1) * pageSize;
+
+      const where = buildSearchWhere(search);
+
+      const [total, reviews] = await Promise.all([
+        ctx.db.review.count({ where }),
+        ctx.db.review.findMany({
+          where,
+          skip,
+          take: pageSize,
+          include: {
+            user: { select: { name: true } },
+            garage: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      return {
+        data: reviews,
+        meta: buildPaginationMeta(total, page, pageSize),
+      };
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.review.delete({ where: { id: input.id } });
-      return { success: true };
+      const review = await ctx.db.review.findFirst({
+        where: { id: input.id },
+      });
+
+      if (!review)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Avis non trouvé" });
+
+      return ctx.db.review.delete({ where: { id: input.id } });
     }),
 });

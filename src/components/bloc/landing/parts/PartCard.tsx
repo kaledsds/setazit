@@ -1,38 +1,37 @@
+// src/components/inventory/PartCard.tsx
 import Image from "next/image";
-import { CreateOrderModal } from "../../order-management/create-order";
+import { CreateShopModal } from "../../shop-management/CreateShopModal";
 
-interface CarCardProps {
-  carId: string;
+interface PartCardProps {
+  partId: string;
   image: string;
   title: string;
-  year: string;
-  engine: string;
-  mileage: string;
+  brand: string;
+  model: string;
+  condition: string;
   price: string;
   status?: string;
   features: string[];
 }
 
-export default function CarCard({
-  carId,
+export default function PartCard({
+  partId,
   image,
   title,
-  year,
-  engine,
-  mileage,
+  brand,
+  model,
+  condition,
   price,
   status = "Available",
   features,
-}: CarCardProps) {
+}: PartCardProps) {
   return (
     <div className="bg-card-car card-hover">
       <div
         className={`absolute top-4 right-4 z-10 rounded-full px-3 py-1 text-sm font-semibold ${
-          status === "Sold"
+          status === "Out of Stock"
             ? "bg-red-600 text-white"
-            : status === "Reserved"
-              ? "bg-yellow-500 text-white"
-              : "bg-(--accent-gold) text-black"
+            : "bg-(--accent-gold) text-black"
         }`}
       >
         {status}
@@ -47,15 +46,15 @@ export default function CarCard({
       <div className="space-y-3">
         <h3 className="text-2xl font-semibold text-(--accent-gold)">{title}</h3>
         <div className="text-foreground flex justify-between text-sm">
-          <span>{year}</span>
-          <span>{engine}</span>
-          <span>{mileage}</span>
+          <span>{brand}</span>
+          <span>{model}</span>
+          <span>{condition}%</span>
         </div>
         <div className="my-2 flex flex-wrap gap-2">
           {features.map((feature, index) => (
             <span
               key={index}
-              className="text-foreground rounded-full border border-(--card-border) bg-(--service-card-bg) px-3 py-1 text-xs"
+              className="text-foreground rounded-full border border-[rgba(212,175,55,0.3)] bg-[rgba(212,175,55,0.05)] px-3 py-1 text-xs"
             >
               {feature}
             </span>
@@ -65,7 +64,7 @@ export default function CarCard({
           {price}
         </div>
         <div className="mt-3 flex gap-3">
-          <CreateOrderModal carId={carId} carName={title} />
+          <CreateShopModal partId={partId} partName={title} />
         </div>
       </div>
     </div>

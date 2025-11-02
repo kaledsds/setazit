@@ -51,7 +51,7 @@ export default function Header() {
             Parts
           </Link>
           <Link
-            href="#services"
+            href="/services"
             className="text-foreground relative font-medium transition-all hover:text-(--accent-gold) hover:drop-shadow-[0_0_10px_rgba(212,175,55,0.8)]"
           >
             Services
