@@ -41,7 +41,7 @@ export const AddGarageModal = () => {
     },
   });
 
-  const createGarageMutation = api.garage.create.useMutation({
+  const createGarageMutation = api.garage.createGarage.useMutation({
     onSuccess: async () => {
       toast.success("Garage ajouté avec succès!");
       await utils.garage.invalidate();

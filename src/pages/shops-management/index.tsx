@@ -5,9 +5,17 @@ import { useState } from "react";
 import { SearchBar } from "@/common/components/pagination/search-bar";
 import { PaginationContextProvider } from "@/common/components/pagination/context/pagination.context";
 import { ShopTable } from "@/components/bloc/shop-management/ShopTable";
+import { useSession } from "next-auth/react";
+import type { Session } from "@prisma/client";
+import { DealershipShopsTable } from "@/components/bloc/shop-management/DealershipShopsTable";
+import { AdminShopsTable } from "@/components/bloc/shop-management/AdminShopsTable";
+
+type Role = "ADMIN" | "DEALERSHIP" | "CLIENT" | null;
 
 export default function ShopPage() {
+  const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState("");
+  const role = (session as unknown as Session)?.sessionType as Role;
 
   return (
     <MainLayout>
@@ -24,7 +32,13 @@ export default function ShopPage() {
 
           <div className="mt-8">
             <PaginationContextProvider ressourcesName="shop">
-              <ShopTable searchValue={searchTerm} />
+              {role === "CLIENT" ? (
+                <ShopTable searchValue={searchTerm} />
+              ) : role === "DEALERSHIP" ? (
+                <DealershipShopsTable searchValue={searchTerm} />
+              ) : role === "ADMIN" ? (
+                <AdminShopsTable searchValue={searchTerm} />
+              ) : null}
             </PaginationContextProvider>
           </div>
         </div>

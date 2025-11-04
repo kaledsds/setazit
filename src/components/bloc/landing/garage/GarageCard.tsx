@@ -1,6 +1,7 @@
 // src/components/inventory/GarageCard.tsx
 import Image from "next/image";
 import { CreateReviewModal } from "../../review-management/CreateReviewModal";
+import { ReviewList } from "../../review-management/ReviewList";
 
 interface GarageCardProps {
   garageId: string;
@@ -62,6 +63,7 @@ export default function GarageCard({
           <CreateReviewModal garageId={garageId} garageName={title} />
         </div>
       </div>
+      <ReviewList garageId={garageId} />
     </div>
   );
 }

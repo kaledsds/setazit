@@ -26,7 +26,7 @@ export const reviewRouter = createTRPCRouter({
     .input(
       z.object({
         garageId: z.string(),
-        rating: z.string().transform(Number),
+        rating: z.number().transform(Number),
         comment: z.string().min(5),
       }),
     )
@@ -43,22 +43,26 @@ export const reviewRouter = createTRPCRouter({
       return ctx.db.review.create({
         data: {
           ...input,
-          rating: input.rating.toString(),
+          rating: input.rating,
           userId: ctx.session.user.id,
         },
       });
     }),
 
+  // src/server/api/routers/review.ts
   getByGarage: publicProcedure
     .input(z.object({ garageId: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.review.findMany({
         where: { garageId: input.garageId },
-        include: { user: { select: { name: true } } },
+        include: {
+          user: {
+            select: { id: true, name: true, image: true }, // MUST INCLUDE
+          },
+        },
         orderBy: { createdAt: "desc" },
       });
     }),
-
   getAll: protectedProcedure
     .input(
       z.object({

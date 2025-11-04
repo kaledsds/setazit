@@ -33,6 +33,117 @@ const buildPaginationMeta = (total: number, page: number, pageSize: number) => {
 };
 
 export const shopRouter = createTRPCRouter({
+  getAll: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(10),
+        search: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "admin")
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+
+      const { page, pageSize, search } = input;
+      const skip = (page - 1) * pageSize;
+
+      const where: Prisma.ShopWhereInput = buildSearchWhere(search);
+
+      const [total, shops] = await Promise.all([
+        ctx.db.shop.count({ where }),
+        ctx.db.shop.findMany({
+          where,
+          skip,
+          take: pageSize,
+          include: {
+            part: { include: { dealership: true } },
+            user: {
+              select: { id: true, name: true, email: true, image: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      return { data: shops, meta: buildPaginationMeta(total, page, pageSize) };
+    }),
+
+  getDealerShops: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(10),
+        search: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, search } = input;
+      const skip = (page - 1) * pageSize;
+
+      const dealership = await ctx.db.dealership.findUnique({
+        where: { userId: ctx.session.user.id },
+      });
+      if (!dealership)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Dealership not found",
+        });
+
+      const where: Prisma.ShopWhereInput = {
+        part: { dealershipId: dealership.id },
+        ...(search && {
+          OR: [
+            { part: { name: { contains: search, mode: "insensitive" } } },
+            { part: { brand: { contains: search, mode: "insensitive" } } },
+          ],
+        }),
+      };
+
+      const [total, shops] = await Promise.all([
+        ctx.db.shop.count({ where }),
+        ctx.db.shop.findMany({
+          where,
+          skip,
+          take: pageSize,
+          include: {
+            part: true,
+            user: {
+              select: { id: true, name: true, email: true, image: true },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+      return { data: shops, meta: buildPaginationMeta(total, page, pageSize) };
+    }),
+
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum(["pending", "confirmed", "cancelled"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const shop = await ctx.db.shop.findFirst({
+        where: { id: input.id },
+        include: { part: { include: { dealership: true } } },
+      });
+
+      const isOwner = shop?.part.dealership.userId === ctx.session.user.id;
+      const isAdmin = ctx.session.user.role === "admin";
+
+      if (!shop || (!isOwner && !isAdmin))
+        throw new TRPCError({ code: "FORBIDDEN", message: "Not authorized" });
+
+      return ctx.db.shop.update({
+        where: { id: input.id },
+        data: { status: input.status },
+        include: { part: true, user: true },
+      });
+    }),
   /**
    * Create a new shop (order part)
    */
@@ -95,87 +206,6 @@ export const shopRouter = createTRPCRouter({
         data: shops,
         meta: buildPaginationMeta(total, page, pageSize),
       };
-    }),
-
-  /**
-   * Get all shops (admin/dealership view)
-   */
-  getAll: protectedProcedure
-    .input(
-      z.object({
-        page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).max(100).default(10),
-        search: z.string().optional(),
-        status: z.enum(["pending", "confirmed", "cancelled"]).optional(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { page, pageSize, search, status } = input;
-      const skip = (page - 1) * pageSize;
-
-      const dealership = await ctx.db.dealership.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: { id: true },
-      });
-
-      if (!dealership) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Dealership not found",
-        });
-      }
-
-      const where: Prisma.ShopWhereInput = {
-        part: { dealershipId: dealership.id },
-        ...buildSearchWhere(search),
-        ...(status && { status }),
-      };
-
-      const [total, shops] = await Promise.all([
-        ctx.db.shop.count({ where }),
-        ctx.db.shop.findMany({
-          where,
-          skip,
-          take: pageSize,
-          include: {
-            part: true,
-            user: { select: { id: true, name: true, email: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        }),
-      ]);
-
-      return {
-        data: shops,
-        meta: buildPaginationMeta(total, page, pageSize),
-      };
-    }),
-
-  /**
-   * Update shop status (admin/dealership)
-   */
-  updateStatus: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        status: z.enum(["pending", "confirmed", "cancelled"]),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const shop = await ctx.db.shop.findFirst({
-        where: { id: input.id },
-        include: { part: { include: { dealership: true } } },
-      });
-
-      if (!shop || shop.part.dealership.userId !== ctx.session.user.id) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
-      }
-
-      return ctx.db.shop.update({
-        where: { id: input.id },
-        data: { status: input.status },
-        include: { part: true, user: true },
-      });
     }),
 
   /**

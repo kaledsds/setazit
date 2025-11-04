@@ -50,7 +50,7 @@ export const garageRouter = createTRPCRouter({
         name: z.string().optional(),
         address: z.string().optional(),
         services: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { page, pageSize, search, name, address, services } = input;
@@ -69,7 +69,8 @@ export const garageRouter = createTRPCRouter({
 
       if (name) where.name = { contains: name, mode: "insensitive" };
       if (address) where.address = { contains: address, mode: "insensitive" };
-      if (services) where.services = { contains: services, mode: "insensitive" };
+      if (services)
+        where.services = { contains: services, mode: "insensitive" };
 
       const total = await ctx.db.garage.count({ where });
       const garages = await ctx.db.garage.findMany({
@@ -96,7 +97,7 @@ export const garageRouter = createTRPCRouter({
         pageSize: z.number().min(1).max(100).default(10),
         search: z.string().optional(),
         availability: z.boolean().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { page, pageSize, search, availability } = input;
@@ -135,7 +136,11 @@ export const garageRouter = createTRPCRouter({
         select: { id: true },
       });
 
-      if (!dealership) throw new TRPCError({ code: "NOT_FOUND", message: "Dealership not found" });
+      if (!dealership)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Dealership not found",
+        });
 
       return ctx.db.garage.create({
         data: {
@@ -161,7 +166,11 @@ export const garageRouter = createTRPCRouter({
         },
       });
 
-      if (!garage) throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found or unauthorized" });
+      if (!garage)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Garage not found or unauthorized",
+        });
 
       return ctx.db.garage.update({
         where: { id },
@@ -183,7 +192,11 @@ export const garageRouter = createTRPCRouter({
         },
       });
 
-      if (!garage) throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found or unauthorized" });
+      if (!garage)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Garage not found or unauthorized",
+        });
 
       return ctx.db.garage.delete({ where: { id: input.id } });
     }),
@@ -199,7 +212,9 @@ export const garageRouter = createTRPCRouter({
         include: {
           dealership: {
             include: {
-              user: { select: { id: true, name: true, email: true, image: true } },
+              user: {
+                select: { id: true, name: true, email: true, image: true },
+              },
             },
           },
           reviews: {
@@ -210,7 +225,8 @@ export const garageRouter = createTRPCRouter({
         },
       });
 
-      if (!garage) throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found" });
+      if (!garage)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Garage not found" });
 
       return garage;
     }),
@@ -219,20 +235,30 @@ export const garageRouter = createTRPCRouter({
    * Get garage stats
    */
   getGarageStats: protectedProcedure.query(async ({ ctx }) => {
-      const dealership = await ctx.db.dealership.findFirst({
-        where: { userId: ctx.session.user.id },
-        select: { id: true },
+    const dealership = await ctx.db.dealership.findFirst({
+      where: { userId: ctx.session.user.id },
+      select: { id: true },
+    });
+
+    if (!dealership)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Dealership not found",
       });
 
-      if (!dealership) throw new TRPCError({ code: "NOT_FOUND", message: "Dealership not found" });
+    const [total, open, closed, reviewed] = await Promise.all([
+      ctx.db.garage.count({ where: { dealershipId: dealership.id } }),
+      ctx.db.garage.count({
+        where: { dealershipId: dealership.id, availability: true },
+      }),
+      ctx.db.garage.count({
+        where: { dealershipId: dealership.id, availability: false },
+      }),
+      ctx.db.garage.count({
+        where: { dealershipId: dealership.id, reviews: { some: {} } },
+      }),
+    ]);
 
-      const [total, open, closed, reviewed] = await Promise.all([
-        ctx.db.garage.count({ where: { dealershipId: dealership.id } }),
-        ctx.db.garage.count({ where: { dealershipId: dealership.id, availability: true } }),
-        ctx.db.garage.count({ where: { dealershipId: dealership.id, availability: false } }),
-        ctx.db.garage.count({ where: { dealershipId: dealership.id, reviews: { some: {} } } }),
-      ]);
-
-      return { total, open, closed, reviewed };
-    }),
+    return { total, open, closed, reviewed };
+  }),
 });

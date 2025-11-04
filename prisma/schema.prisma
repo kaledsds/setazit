@@ -173,7 +173,7 @@ model Order {
 
 model Review {
     id        String   @id @default(cuid())
-    rating    String
+    rating    Int
     date      DateTime @default(now())
     comment   String
     userId    String
