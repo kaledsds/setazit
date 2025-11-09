@@ -15,7 +15,7 @@ export const TemplatePaginationButtons: React.FC<
 
   // Calculate total pages from total items and items per page
   const totalPages = Math.ceil(
-    (meta?.total || 0) / (meta?.perPage || paginationStates.itemsPerPage),
+    (meta?.total ?? 0) / (meta?.perPage ?? paginationStates.itemsPerPage),
   );
 
   const handlePerPageChange = (newPerPage: number) => {
