@@ -6,7 +6,18 @@ export const dealershipInputSchema = z.object({
   nature: z.string().min(3),
   phone: z.string().min(8),
   email: z.string().email(),
-  image: z.string().url().optional().or(z.literal("")),
+  image: z
+    .string()
+    .min(1, "L’image est obligatoire.")
+    .refine(
+      (val) =>
+        val.startsWith("http://") ||
+        val.startsWith("https://") ||
+        val.startsWith("/"),
+      { message: "L’URL ou le chemin de l’image n’est pas valide." },
+    )
+    .optional()
+    .nullable(),
 });
 
 export type dealershipInputSchemaType = z.infer<typeof dealershipInputSchema>;

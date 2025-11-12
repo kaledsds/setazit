@@ -9,6 +9,7 @@ import { reviewRouter } from "./routers/review";
 import { checkUserRouter } from "./routers/check-user";
 import { sessionRouter } from "./routers/session";
 import { shopRouter } from "./routers/shop";
+import { profileRouter } from "./routers/profile";
 
 export const appRouter = createTRPCRouter({
   dealership: dealershipRouter,
@@ -21,6 +22,7 @@ export const appRouter = createTRPCRouter({
   review: reviewRouter,
   checkUser: checkUserRouter,
   session: sessionRouter,
+  profile: profileRouter,
 });
 
 export type AppRouter = typeof appRouter;
